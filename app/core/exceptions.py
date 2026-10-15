@@ -2,7 +2,7 @@ class AppException(Exception):
     """Base exception for application errors."""
 
 
-class EmailAlreadyExist(AppException):
+class EmailAlreadyExists(AppException):
     """Raised on registration when email is already in use."""
 
 

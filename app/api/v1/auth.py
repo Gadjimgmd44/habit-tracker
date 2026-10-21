@@ -6,7 +6,7 @@ from app.core.exceptions import EmailAlreadyExists
 from app.db.session import get_db
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserRead
-from app.services.auth import authenticate_user, get_user_by_email, register_user
+from app.services.auth import authenticate_user, register_user
 from app.core.security import create_access_token 
 
 router = APIRouter(
@@ -60,7 +60,7 @@ async def login(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
-    elif user.is_active is False:
+    if user.is_active is False:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
         )

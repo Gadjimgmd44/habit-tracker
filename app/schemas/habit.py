@@ -27,7 +27,7 @@ class HabitCreate(BaseModel):
     def normalize_days(cls, v: list[DayName]) -> list[DayName]:
         if len(v) != len(set(v)):
             raise ValueError("days must not contain duplicates")
-        return sorted(set(v), key=DAY_ORDER.index)
+        return sorted(v, key=DAY_ORDER.index)
 
 
 class HabitRead(BaseModel):
@@ -65,4 +65,4 @@ class HabitUpdate(BaseModel):
             return v
         if len(v) != len(set(v)):
             raise ValueError("days must not contain duplicates")
-        return sorted(set(v), key=DAY_ORDER.index)
+        return sorted(v, key=DAY_ORDER.index)

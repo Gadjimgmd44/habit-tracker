@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models.habit import Habit  # noqa: F401
 from app.models.user import User  # noqa: F401
+from app.models.habit_log import HabitLog  # noqa: F401
 
 # ... дальше твой код
 # this is the Alembic Config object, which provides

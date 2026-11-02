@@ -25,3 +25,6 @@ class Habit(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     user: Mapped["User"] = relationship(back_populates="habits")
+    logs: Mapped[list["HabitLog"]] = relationship(
+        back_populates="habit", cascade="all, delete-orphan"
+    )

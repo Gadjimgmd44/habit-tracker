@@ -4,11 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
-from app.core.exceptions import NotFoundException
+from app.core.exceptions import (
+    AlreadyCompletedException,
+    NotFoundException,
+    NotScheduledTodayException,
+)
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.habit import HabitCreate, HabitRead, HabitUpdate
+from app.schemas.habit import HabitCreate, HabitRead, HabitStats, HabitUpdate
 from app.services import habit as habit_service
+from app.services import habit_log as habit_log_service
 
 router = APIRouter(
     prefix="/habits",
@@ -114,3 +119,69 @@ async def delete_habit(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         ) from None
+
+
+@router.post(
+    "/{habit_id}/complete",
+    response_model=HabitStats,
+    status_code=status.HTTP_201_CREATED,
+)
+async def complete_habit_endpoint(
+    habit_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> HabitStats:
+    try:
+        await habit_log_service.complete_habit(
+            session=session, habit_id=habit_id, user_id=current_user.id
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from None
+    except AlreadyCompletedException as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        ) from None
+    except NotScheduledTodayException as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from None
+    return await habit_log_service.get_habit_stats(
+        session=session, habit_id=habit_id, user_id=current_user.id
+    )
+
+
+@router.delete("/{habit_id}/complete", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_habit_complete(
+    habit_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> None:
+    try:
+        await habit_log_service.uncomplete_habit(
+            session=session, habit_id=habit_id, user_id=current_user.id
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from None
+
+
+@router.get(
+    "/{habit_id}/stats", status_code=status.HTTP_200_OK, response_model=HabitStats
+)
+async def get_habit_stats(
+    habit_id: UUID,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    try:
+        habit_stat = await habit_log_service.get_habit_stats(
+            session=session, habit_id=habit_id, user_id=current_user.id
+        )
+    except NotFoundException as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from None
+    return habit_stat

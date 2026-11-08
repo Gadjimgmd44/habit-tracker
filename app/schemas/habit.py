@@ -66,3 +66,12 @@ class HabitUpdate(BaseModel):
         if len(v) != len(set(v)):
             raise ValueError("days must not contain duplicates")
         return sorted(v, key=DAY_ORDER.index)
+
+
+class HabitStats(BaseModel):
+    current_streak: int
+    best_streak: int
+    display_streak: int
+    today_completed: int
+    today_scheduled: bool
+    total_completions_history: int

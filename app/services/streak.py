@@ -38,7 +38,7 @@ def calculate_display_streak(current_streak: int, today_completed: bool) -> int:
 
 
 def calculate_best_streak(
-    days: list[str], log_dates: set[date], created_at: date, today: date
+    days: list[str], log_dates: set[date], created_at: date
 ) -> int:
     if not log_dates:
         return 0

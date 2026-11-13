@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pydantic import PostgresDsn
@@ -59,3 +61,18 @@ async def client(db_session):
             yield ac
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def auth_headers(client):
+    email = f"user_{uuid4().hex[:8]}@example.com"
+    password = "secret123"
+
+    await client.post(
+        "/api/v1/auth/register", json={"email": email, "password": password}
+    )
+    login_response = await client.post(
+        "/api/v1/auth/login", data={"username": email, "password": password}
+    )
+    token = login_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}

@@ -1,5 +1,7 @@
+from datetime import date
 from uuid import uuid4
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pydantic import PostgresDsn
@@ -12,7 +14,7 @@ from app.db.session import get_db
 from app.main import app
 from app.models.habit import Habit  # noqa: F401
 from app.models.habit_log import HabitLog  # noqa: F401
-from app.models.user import User  # noqa: F401
+from app.schemas.habit import DAY_ORDER
 
 TEST_DATABASE_URL = str(
     PostgresDsn.build(
@@ -91,3 +93,8 @@ async def auth_headers_2(client):
     )
     token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def today_name():
+    return DAY_ORDER[date.today().weekday()]

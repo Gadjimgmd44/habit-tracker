@@ -72,6 +72,6 @@ class HabitStats(BaseModel):
     current_streak: int
     best_streak: int
     display_streak: int
-    today_completed: int
+    today_completed: bool
     today_scheduled: bool
     total_completions_history: int

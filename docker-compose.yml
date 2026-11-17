@@ -9,14 +9,49 @@ services:
       POSTGRES_DB: habit_db
     ports:
       - "5433:5432"
-    volumes: 
+    volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U habit_user -d habit_db -h localhost"]
       interval: 5s
       timeout: 5s
-      retries: 5  
+      retries: 5
+
+  migrate:
+    build: .
+    image: habit-tracker:latest
+    container_name: habit_tracker_migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-habit_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-habit_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-habit_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
+  app:
+    image: habit-tracker:latest
+    container_name: habit_tracker_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-habit_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-habit_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-habit_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+    ports:
+      - "8888:8000"
 
 volumes:
   postgres_data:
-

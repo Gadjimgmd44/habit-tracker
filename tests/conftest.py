@@ -97,4 +97,4 @@ async def auth_headers_2(client):
 
 @pytest.fixture
 def today_name():
-    return DAY_ORDER[date.today().weekday()]
+    return DAY_ORDER[date.today().weekday()] # noqa: DTZ011
